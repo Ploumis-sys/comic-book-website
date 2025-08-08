@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Comic Book Catalog</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f9f9f9;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+  }
+  .form {
+    max-width: 400px;
+    margin: 0 auto 20px;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .form input {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0;
+  }
+  .form button {
+    width: 100%;
+    padding: 10px;
+    background: #4cafef;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+  }
+  .form button:hover {
+    background: #2d8dd6;
+  }
+  .catalog {
+    display: grid;
+    gap: 15px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .comic {
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  }
+  .comic img {
+    max-width: 100%;
+    border-radius: 5px;
+    margin-top: 5px;
+  }
+  .comic-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .comic button {
+    background: #ff4f4f;
+    color: white;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .comic button:hover {
+    background: #cc3b3b;
+  }
+</style>
+</head>
+<body>
+
+<h1>Comic Book Catalog</h1>
+
+<div class="form">
+  <input type="text" id="title" placeholder="Title" />
+  <input type="text" id="issue" placeholder="Issue Number" />
+  <input type="text" id="publisher" placeholder="Publisher" />
+  <input type="file" id="image" accept="image/*" />
+  <button onclick="addComic()">Add Comic</button>
+</div>
+
+<div id="catalog" class="catalog"></div>
+
+<script>
+  let comics = JSON.parse(localStorage.getItem('comic_catalog_data')) || [];
+
+  function saveComics() {
+    localStorage.setItem('comic_catalog_data', JSON.stringify(comics));
+  }
+
+  function displayComics() {
+    const catalog = document.getElementById('catalog');
+    catalog.innerHTML = '';
+    comics.forEach((comic, index) => {
+      const comicDiv = document.createElement('div');
+      comicDiv.className = 'comic';
+      comicDiv.innerHTML = `
+        <div class="comic-header">
+          <strong>${comic.title} #${comic.issue}</strong>
+          <button onclick="deleteComic(${index})">Delete</button>
+        </div>
+        <small>${comic.publisher}</small>
+        ${comic.imageUrl ? `<img src="${comic.imageUrl}" alt="Cover">` : ''}
+      `;
+      catalog.appendChild(comicDiv);
+    });
+  }
+
+  function addComic() {
+    const title = document.getElementById('title').value.trim();
+    const issue = document.getElementById('issue').value.trim();
+    const publisher = document.getElementById('publisher').value.trim();
+    const imageInput = document.getElementById('image');
+    if (!title || !issue || !publisher) {
+      alert('Please fill in all fields');
+      return;
+    }
+    if (imageInput.files.length === 0) {
+      alert('Please select an image');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = function() {
+      comics.push({
+        title,
+        issue,
+        publisher,
+        imageUrl: reader.result
+      });
+      saveComics();
+      displayComics();
+      document.getElementById('title').value = '';
+      document.getElementById('issue').value = '';
+      document.getElementById('publisher').value = '';
+      imageInput.value = '';
+    };
+    reader.readAsDataURL(imageInput.files[0]);
+  }
+
+  function deleteComic(index) {
+    comics.splice(index, 1);
+    saveComics();
+    displayComics();
+  }
+
+  // Initial display
+  displayComics();
+</script>
+
+</body>
+</html>
